@@ -1,3 +1,6 @@
+Just trying to apply some updates to mootensai/yii2-relation-trait.  He's been very busy :)
+
+
 # yii2-relation-trait
 Yii 2 Models add functionality for load with relation (loadAll($POST)), &amp; transactional save with relation (saveAll())
 
