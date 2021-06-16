@@ -362,7 +362,14 @@ trait RelationTrait
                             }
                         }
                         if ($isSoftDelete) {
-                            $error = !$this->{$data['name']}[0]->updateAll($this->_rt_softdelete, ['and', $array]);
+                            if (!$this->deleted_by) {
+                                // if our parent relation is currently 0 (it hasn't been soft deleted yet)
+                                // we do an update (a soft delete).
+                                // else our parent already has a value not eq to 0, so we do a hard delete.
+                                $error = !$this->{$data['name']}[0]->updateAll($this->_rt_softdelete, ['and', $array]);
+                            } else {
+                                $error = !$this->{$data['name']}[0]->deleteAll(['and', $array]);
+                            }
                         } else {
                             $error = !$this->{$data['name']}[0]->deleteAll(['and', $array]);
                         }
@@ -374,12 +381,24 @@ trait RelationTrait
                 return false;
             }
             if ($isSoftDelete) {
-                $this->attributes = array_merge($this->attributes, $this->_rt_softdelete);
-                if ($this->save(false)) {
-                    $trans->commit();
-                    return true;
+                if (!$this->deleted_by) {
+                    // if our parent relation is currently 0 (it hasn't been soft deleted yet)
+                    // we do an update (a soft delete).
+                    // else our parent already has a value not eq to 0, so we do a hard delete.
+                    $this->attributes = array_merge($this->attributes, $this->_rt_softdelete);
+                    if ($this->save(false)) {
+                        $trans->commit();
+                        return true;
+                    } else {
+                        $trans->rollBack();
+                    }
                 } else {
-                    $trans->rollBack();
+                    if ($this->delete()) {
+                        $trans->commit();
+                        return true;
+                    } else {
+                        $trans->rollBack();
+                    }
                 }
             } else {
                 if ($this->delete()) {
