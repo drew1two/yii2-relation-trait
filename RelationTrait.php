@@ -7,7 +7,7 @@
  * @since 1.0
  */
 
-namespace mootensai\relation;
+namespace drew1two\relation;
 
 use Yii;
 use yii\db\ActiveQuery;
